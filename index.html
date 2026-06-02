@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Differentiator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" as="style">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js" as="script">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js" as="script">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #efe9ff;
+            --panel: #6d35d0;
+            --panel-strong: #ffffff;
+            --ink: #f8f3ff;
+            --muted: #d9ccff;
+            --line: rgba(25, 24, 23, 0.12);
+            --accent: #24f26f;
+            --accent-dark: #15c85a;
+            --focus: rgba(124, 58, 237, 0.18);
+            --error: #a8422d;
+            --shadow: 0 38px 95px rgba(58, 21, 117, 0.34);
+            --body-bg:
+                radial-gradient(circle at 50% 18%, rgba(142, 92, 246, 0.24), transparent 32%),
+                linear-gradient(145deg, #f7f3ff, var(--bg));
+            --controls-bg: #51249f;
+            --input-bg: #2b1457;
+            --input-focus-bg: #32196a;
+            --ghost-bg: #7f4aec;
+            --ghost-hover-bg: #9264f5;
+            --count-border: rgba(36, 242, 111, 0.42);
+            --count-bg: rgba(10, 20, 12, 0.42);
+            --screen-bg: #030603;
+            --screen-ink: #39ff79;
+            --screen-rgb: 57, 255, 121;
+            --screen-muted: #20b953;
+            --bezel: #22103f;
+            --button-face: linear-gradient(180deg, #8f61f4, #5d2bc0);
+            --button-shadow: inset 0 2px 0 rgba(255,255,255,0.28), inset 0 -4px 0 rgba(34,16,63,0.48), 0 10px 0 rgba(28,13,54,0.35);
+        }
+
+        body.dark {
+            color-scheme: dark;
+            --bg: #0d0718;
+            --panel: #4b1d9a;
+            --panel-strong: rgba(38, 29, 58, 0.92);
+            --ink: #f7f1ff;
+            --muted: #cdbdff;
+            --line: rgba(245, 239, 255, 0.14);
+            --accent: #24f26f;
+            --accent-dark: #15c85a;
+            --focus: rgba(167, 139, 250, 0.24);
+            --error: #fb8f7c;
+            --shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
+            --body-bg:
+                radial-gradient(circle at 18% 18%, rgba(167, 139, 250, 0.20), transparent 30%),
+                radial-gradient(circle at 84% 78%, rgba(88, 28, 135, 0.34), transparent 34%),
+                linear-gradient(145deg, #09070d, var(--bg));
+            --controls-bg: #2d145c;
+            --input-bg: rgba(15, 11, 22, 0.9);
+            --input-focus-bg: rgba(27, 20, 41, 0.98);
+            --ghost-bg: #5e2cc2;
+            --ghost-hover-bg: #7441dc;
+            --count-border: rgba(196, 181, 253, 0.28);
+            --count-bg: rgba(6, 14, 7, 0.62);
+            --bezel: #160b2b;
+        }
+
+        body.scheme-amber {
+            --bg: #fff5df;
+            --panel: #7a3f9d;
+            --controls-bg: #5a287c;
+            --ghost-bg: #8d51b3;
+            --ghost-hover-bg: #a368c8;
+            --accent: #ffce45;
+            --accent-dark: #f7a928;
+            --screen-ink: #ffd84d;
+            --screen-rgb: 255, 216, 77;
+            --screen-muted: #d79e27;
+            --count-border: rgba(255, 216, 77, 0.42);
+            --button-face: linear-gradient(180deg, #b15ccc, #72309a);
+            --body-bg:
+                radial-gradient(circle at 50% 18%, rgba(255, 206, 69, 0.18), transparent 32%),
+                linear-gradient(145deg, #fff9eb, var(--bg));
+        }
+
+        body.scheme-cyan {
+            --bg: #e8fbff;
+            --panel: #3356d0;
+            --controls-bg: #223f9d;
+            --ghost-bg: #486ce7;
+            --ghost-hover-bg: #5f83ff;
+            --accent: #38e8ff;
+            --accent-dark: #14bed6;
+            --screen-ink: #56f4ff;
+            --screen-rgb: 86, 244, 255;
+            --screen-muted: #2bbdcc;
+            --count-border: rgba(86, 244, 255, 0.42);
+            --bezel: #101d50;
+            --button-face: linear-gradient(180deg, #5e85ff, #2846b8);
+            --body-bg:
+                radial-gradient(circle at 50% 18%, rgba(56, 232, 255, 0.2), transparent 32%),
+                linear-gradient(145deg, #f2fdff, var(--bg));
+        }
+
+        body.scheme-rose {
+            --bg: #fff0f6;
+            --panel: #b02e87;
+            --controls-bg: #842064;
+            --ghost-bg: #c4499d;
+            --ghost-hover-bg: #db63b5;
+            --accent: #ff7ab8;
+            --accent-dark: #f24f9a;
+            --screen-ink: #ff8cc6;
+            --screen-rgb: 255, 140, 198;
+            --screen-muted: #d5579c;
+            --count-border: rgba(255, 140, 198, 0.42);
+            --bezel: #3e1433;
+            --button-face: linear-gradient(180deg, #e45cb7, #9b2677);
+            --body-bg:
+                radial-gradient(circle at 50% 18%, rgba(255, 122, 184, 0.2), transparent 32%),
+                linear-gradient(145deg, #fff7fb, var(--bg));
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: grid;
+            place-items: center;
+            padding: clamp(20px, 5vw, 64px);
+            background: var(--body-bg);
+            background-size: 140% 140%;
+            color: var(--ink);
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            animation: ambientGlow 14s ease-in-out infinite alternate;
+        }
+
+        main {
+            width: min(100%, 1280px);
+            min-height: calc(100vh - clamp(40px, 10vw, 128px));
+            display: grid;
+            place-items: center;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+            gap: clamp(20px, 4vw, 40px);
+            width: 100%;
+            min-height: min(720px, calc(100vh - clamp(40px, 10vw, 128px)));
+            overflow: hidden;
+            position: relative;
+            border: 5px solid #2b1457;
+            border-radius: 18px;
+            background: var(--panel);
+            box-shadow: var(--shadow);
+            outline: 1px solid rgba(255, 255, 255, 0.28);
+            animation: machineBoot 620ms cubic-bezier(.2, .9, .25, 1) both;
+        }
+
+        .workspace::after {
+            content: "";
+            position: absolute;
+            inset: 12px;
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 11px;
+        }
+
+        .hero,
+        .equation-area,
+        .controls {
+            padding: clamp(24px, 4vw, 48px);
+        }
+
+        .hero {
+            display: flex;
+            justify-content: space-between;
+            gap: 24px;
+            align-items: flex-start;
+            padding-bottom: 0;
+        }
+
+        .eyebrow {
+            margin: 0 0 4px;
+            color: var(--accent);
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            max-width: 18ch;
+            margin: 0;
+            font-size: clamp(2rem, 6vw, 4.5rem);
+            line-height: 0.96;
+            letter-spacing: 0;
+        }
+
+        .subtitle {
+            max-width: 34rem;
+            margin: 4px 0 6px;
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        label {
+            display: grid;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        input {
+            width: 100%;
+            min-height: 52px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            outline: 0;
+            background: var(--input-bg);
+            color: #f8f3ff;
+            font: 500 1.04rem/1.2 ui-monospace, "SFMono-Regular", Consolas, monospace;
+            padding: 0 15px;
+            transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+        }
+
+        input:focus {
+            border-color: rgba(124, 58, 237, 0.52);
+            box-shadow: 0 0 0 5px var(--focus);
+            background: var(--input-focus-bg);
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: end;
+            justify-content: center;
+        }
+
+        .plane-switch {
+            position: relative;
+            display: inline-grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            min-width: 190px;
+            min-height: 48px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 8px;
+            color: #fff;
+            background: #1d0d38;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.48), 0 8px 0 rgba(28, 13, 54, 0.35);
+            cursor: pointer;
+            isolation: isolate;
+            overflow: hidden;
+            padding: 0;
+            font: 800 0.78rem/1 Inter, system-ui, sans-serif;
+            text-transform: uppercase;
+        }
+
+        .plane-switch::before {
+            content: "";
+            position: absolute;
+            inset: 5px;
+            width: calc(50% - 5px);
+            border-radius: 6px;
+            background: var(--button-face);
+            box-shadow: var(--button-shadow);
+            transition: transform 180ms ease;
+            z-index: -1;
+        }
+
+        .plane-switch.is-cartesian::before {
+            transform: translateX(100%);
+        }
+
+        .plane-switch span {
+            display: grid;
+            place-items: center;
+            height: 100%;
+            color: rgba(255, 255, 255, 0.58);
+            text-shadow: none;
+            transition: color 160ms ease, text-shadow 160ms ease;
+        }
+
+        .plane-switch:not(.is-cartesian) .polar-label,
+        .plane-switch.is-cartesian .cartesian-label {
+            color: #fff;
+            text-shadow: 0 0 10px rgba(var(--screen-rgb), 0.34);
+        }
+
+        button {
+            min-height: 48px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 8px;
+            cursor: pointer;
+            color: #fff;
+            background: var(--button-face);
+            padding: 0 18px;
+            font: 700 0.94rem/1 Inter, system-ui, sans-serif;
+            box-shadow: var(--button-shadow);
+            text-transform: uppercase;
+            transition: transform 120ms ease, filter 160ms ease, box-shadow 120ms ease;
+        }
+
+        button:hover {
+            filter: brightness(1.08);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            box-shadow: inset 0 2px 0 rgba(255,255,255,0.16), inset 0 -2px 0 rgba(34,16,63,0.5), 0 4px 0 rgba(28,13,54,0.35);
+            transform: translateY(5px);
+        }
+
+        .ghost {
+            border: 1px solid var(--line);
+            color: var(--ink);
+            background: var(--ghost-bg);
+        }
+
+        .ghost:hover {
+            background: var(--ghost-hover-bg);
+        }
+
+        .equation-area {
+            display: grid;
+            place-items: center;
+            gap: 18px;
+            min-height: clamp(260px, 44vh, 460px);
+            padding-block: clamp(10px, 3vw, 28px);
+        }
+
+        .console-display {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(240px, 0.42fr);
+            gap: clamp(16px, 3vw, 28px);
+            width: 100%;
+            align-items: stretch;
+        }
+
+        .math-stage,
+        .radar-stage {
+            position: relative;
+            display: grid;
+            place-items: center;
+            min-height: 100%;
+            padding: clamp(26px, 5vw, 54px);
+            border: 14px solid var(--bezel);
+            border-radius: 14px;
+            background:
+                linear-gradient(rgba(var(--screen-rgb), 0.05) 50%, rgba(var(--screen-rgb), 0.01) 50%),
+                var(--screen-bg);
+            background-size: 100% 7px;
+            box-shadow:
+                inset 0 0 38px rgba(var(--screen-rgb), 0.13),
+                inset 0 0 0 2px rgba(var(--screen-rgb), 0.18),
+                0 20px 0 rgba(26, 12, 49, 0.42);
+            transition: box-shadow 160ms ease, transform 160ms ease;
+        }
+
+        .math-stage {
+            cursor: copy;
+        }
+
+        .screen-arrow {
+            position: absolute;
+            z-index: 4;
+            top: 50%;
+            display: none;
+            width: 38px;
+            min-height: 48px;
+            padding: 0;
+            transform: translateY(-50%);
+            color: var(--screen-ink);
+            background: rgba(3, 6, 3, 0.72);
+            border: 1px solid rgba(var(--screen-rgb), 0.32);
+            box-shadow: 0 0 18px rgba(var(--screen-rgb), 0.12), inset 0 0 12px rgba(var(--screen-rgb), 0.08);
+            text-shadow: 0 0 8px rgba(var(--screen-rgb), 0.72);
+        }
+
+        .screen-arrow:hover {
+            filter: brightness(1.18);
+            transform: translateY(-50%);
+        }
+
+        .screen-arrow:active {
+            transform: translateY(calc(-50% + 2px));
+        }
+
+        .screen-arrow.left {
+            left: 12px;
+        }
+
+        .screen-arrow.right {
+            right: 12px;
+        }
+
+        .math-stage:hover,
+        .radar-stage:hover {
+            box-shadow:
+                inset 0 0 44px rgba(var(--screen-rgb), 0.2),
+                inset 0 0 0 2px rgba(var(--screen-rgb), 0.26),
+                0 20px 0 rgba(26, 12, 49, 0.42),
+                0 0 28px rgba(var(--screen-rgb), 0.16);
+        }
+
+        .math-stage::before,
+        .radar-stage::before {
+            content: "";
+            position: absolute;
+            inset: 14px;
+            pointer-events: none;
+            border-radius: 4px;
+            background: radial-gradient(circle at 50% 35%, rgba(var(--screen-rgb), 0.09), transparent 60%);
+        }
+
+        .math-stage::after,
+        .radar-stage::after {
+            content: "";
+            position: absolute;
+            inset: 14px;
+            pointer-events: none;
+            border-radius: 4px;
+            background: linear-gradient(180deg, transparent, rgba(var(--screen-rgb), 0.14), transparent);
+            opacity: 0.3;
+            transform: translateY(-120%);
+            animation: scanSweep 4.5s linear infinite;
+        }
+
+        .math-stage.flicker {
+            animation: screenFlicker 260ms steps(2, end);
+        }
+
+        .radar-stage {
+            min-height: 260px;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .radar-stage.flicker {
+            animation: screenFlicker 260ms steps(2, end);
+        }
+
+        .radar-header {
+            position: absolute;
+            top: 14px;
+            left: 18px;
+            z-index: 2;
+            color: var(--screen-ink);
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            text-shadow: 0 0 8px rgba(var(--screen-rgb), 0.62);
+        }
+
+        .radar-toggle {
+            position: absolute;
+            right: 18px;
+            bottom: 14px;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--screen-ink);
+            font-size: 0.64rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            text-shadow: 0 0 8px rgba(var(--screen-rgb), 0.52);
+        }
+
+        .radar-toggle input {
+            width: 16px;
+            min-height: 16px;
+            accent-color: var(--screen-ink);
+            cursor: pointer;
+        }
+
+        .radar-toggle:has(input:disabled) {
+            opacity: 0.42;
+        }
+
+        #polarRadar {
+            position: relative;
+            z-index: 1;
+            width: min(100%, 300px);
+            aspect-ratio: 1;
+            filter: drop-shadow(0 0 14px rgba(var(--screen-rgb), 0.28));
+        }
+
+        .radar-sweep {
+            position: absolute;
+            z-index: 2;
+            width: min(62%, 250px);
+            aspect-ratio: 1;
+            border-radius: 50%;
+            pointer-events: none;
+            background: conic-gradient(from 0deg, rgba(var(--screen-rgb), 0.34), rgba(var(--screen-rgb), 0.08) 18deg, transparent 58deg);
+            mix-blend-mode: screen;
+            animation: radarSweep 3.2s linear infinite;
+        }
+
+        #renderedFraction {
+            position: relative;
+            z-index: 1;
+            max-width: 100%;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            color: var(--screen-ink);
+            font-size: var(--equation-size, clamp(1.5rem, 6vw, 4.5rem));
+            line-height: 1.35;
+            text-align: center;
+            text-shadow: 0 0 9px rgba(var(--screen-rgb), 0.86), 0 0 24px rgba(var(--screen-rgb), 0.34);
+            animation: neonPulse 2.6s ease-in-out infinite alternate;
+            transition: font-size 180ms ease, transform 180ms ease;
+        }
+
+        #renderedFraction::-webkit-scrollbar {
+            display: none;
+        }
+
+        #renderedFraction .katex-display {
+            margin: 0;
+        }
+
+        .result-row {
+            display: grid;
+            gap: 8px;
+            width: min(100%, 760px);
+            justify-self: center;
+            text-align: center;
+        }
+
+        .limit-stage {
+            position: relative;
+            display: grid;
+            align-content: center;
+            gap: 8px;
+            width: min(100%, 760px);
+            min-height: 92px;
+            justify-self: center;
+            text-align: center;
+            padding: 18px 24px;
+            border: 10px solid var(--bezel);
+            border-radius: 12px;
+            background:
+                linear-gradient(rgba(var(--screen-rgb), 0.05) 50%, rgba(var(--screen-rgb), 0.01) 50%),
+                var(--screen-bg);
+            background-size: 100% 7px;
+            color: var(--screen-ink);
+            box-shadow:
+                inset 0 0 28px rgba(var(--screen-rgb), 0.12),
+                inset 0 0 0 2px rgba(var(--screen-rgb), 0.16),
+                0 12px 0 rgba(26, 12, 49, 0.36);
+            text-shadow: 0 0 8px rgba(var(--screen-rgb), 0.44);
+            overflow: hidden;
+        }
+
+        .limit-stage::after {
+            content: "";
+            position: absolute;
+            inset: 10px;
+            pointer-events: none;
+            background: linear-gradient(180deg, transparent, rgba(var(--screen-rgb), 0.12), transparent);
+            opacity: 0.24;
+            transform: translateY(-120%);
+            animation: scanSweep 5s linear infinite;
+        }
+
+        .limit-stage #limitProbeLabel,
+        .limit-stage #limitProbe {
+            position: relative;
+            z-index: 1;
+        }
+
+        .limit-stage #limitProbeLabel {
+            font-size: clamp(1rem, 2.6vw, 1.45rem);
+        }
+
+        .limit-stage #limitProbe {
+            font-size: clamp(1.1rem, 3vw, 1.7rem);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .limit-stage #limitProbe::-webkit-scrollbar {
+            display: none;
+        }
+
+        .limit-stage .katex-display {
+            margin: 0;
+        }
+
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .count {
+            display: inline-grid;
+            place-items: center;
+            min-width: 34px;
+            height: 34px;
+            border: 1px solid var(--count-border);
+            border-radius: 8px;
+            background: var(--count-bg);
+            color: var(--screen-ink);
+            font-weight: 800;
+            text-shadow: 0 0 8px rgba(var(--screen-rgb), 0.54);
+            transition: transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        .count.bump {
+            animation: countBump 240ms ease;
+        }
+
+        .theme-toggle {
+            min-width: 48px;
+            padding: 0 14px;
+        }
+
+        .controls {
+            display: grid;
+            gap: 18px;
+            border-top: 5px solid #2b1457;
+            background: var(--controls-bg);
+            box-shadow: inset 0 8px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .expression-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            width: min(100%, 760px);
+            justify-self: center;
+        }
+
+        .control-stack {
+            display: grid;
+            gap: 12px;
+            width: min(100%, 760px);
+            justify-self: center;
+        }
+
+        .wacky-control {
+            display: grid;
+            grid-template-columns: auto minmax(160px, 1fr) 34px;
+            gap: 12px;
+            align-items: center;
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .scheme-control {
+            display: grid;
+            grid-template-columns: auto minmax(160px, 1fr);
+            gap: 12px;
+            align-items: center;
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .probe-grid {
+            display: grid;
+            grid-template-columns: minmax(160px, 0.8fr) minmax(180px, 1fr);
+            gap: 14px;
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .toggle-row input {
+            width: 18px;
+            min-height: 18px;
+            accent-color: var(--screen-ink);
+        }
+
+        select {
+            width: 100%;
+            min-height: 46px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 8px;
+            color: #fff;
+            background: #1d0d38;
+            padding: 0 14px;
+            font: 800 0.82rem/1 Inter, system-ui, sans-serif;
+            text-transform: uppercase;
+            outline: 0;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.48), 0 6px 0 rgba(28, 13, 54, 0.28);
+        }
+
+        select:focus {
+            box-shadow: 0 0 0 4px rgba(var(--screen-rgb), 0.18), inset 0 2px 8px rgba(0, 0, 0, 0.48);
+        }
+
+        input[type="range"] {
+            appearance: none;
+            min-height: 24px;
+            border: 0;
+            border-radius: 0;
+            padding: 0;
+            accent-color: var(--accent);
+            background: transparent;
+            box-shadow: none;
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 999px;
+            background: #1d0d38;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            width: 28px;
+            height: 28px;
+            margin-top: -9px;
+            border: 2px solid #1d0d38;
+            border-radius: 6px;
+            background: var(--accent);
+            box-shadow: 0 0 18px rgba(var(--screen-rgb), 0.55);
+            appearance: none;
+        }
+
+        input[type="range"]::-moz-range-track {
+            height: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 999px;
+            background: #1d0d38;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #1d0d38;
+            border-radius: 6px;
+            background: var(--accent);
+            box-shadow: 0 0 18px rgba(var(--screen-rgb), 0.55);
+        }
+
+        @keyframes ambientGlow {
+            from {
+                background-position: 0% 45%;
+            }
+
+            to {
+                background-position: 100% 55%;
+            }
+        }
+
+        @keyframes machineBoot {
+            from {
+                opacity: 0;
+                transform: translateY(16px) scale(0.985);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes scanSweep {
+            0% {
+                transform: translateY(-120%);
+            }
+
+            100% {
+                transform: translateY(120%);
+            }
+        }
+
+        @keyframes neonPulse {
+            from {
+                filter: brightness(0.92);
+                text-shadow: 0 0 8px rgba(var(--screen-rgb), 0.72), 0 0 20px rgba(var(--screen-rgb), 0.26);
+            }
+
+            to {
+                filter: brightness(1.08);
+                text-shadow: 0 0 12px rgba(var(--screen-rgb), 0.95), 0 0 32px rgba(var(--screen-rgb), 0.42);
+            }
+        }
+
+        @keyframes screenFlicker {
+            0%, 100% {
+                filter: brightness(1);
+            }
+
+            35% {
+                filter: brightness(1.35);
+            }
+
+            65% {
+                filter: brightness(0.78);
+            }
+        }
+
+        @keyframes countBump {
+            0%, 100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.16);
+                box-shadow: 0 0 20px rgba(var(--screen-rgb), 0.32);
+            }
+        }
+
+        @keyframes radarSweep {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+                transition-duration: 0.001ms !important;
+            }
+        }
+
+        .result-label {
+            color: var(--muted);
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        #rawExpression {
+            min-height: 25px;
+            color: var(--muted);
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: 0.94rem;
+            overflow-wrap: anywhere;
+        }
+
+        #status {
+            min-height: 24px;
+            color: var(--screen-ink);
+            font-size: 0.9rem;
+            line-height: 1.45;
+            text-align: center;
+        }
+
+        #status.error {
+            color: var(--error);
+        }
+
+        @media (max-width: 760px) {
+            body {
+                place-items: stretch;
+                padding: 0;
+            }
+
+            .workspace {
+                min-height: 100vh;
+                grid-template-rows: auto minmax(36vh, 1fr) auto;
+                border: 0;
+                border-radius: 0;
+            }
+
+            .hero {
+                display: grid;
+            }
+
+            .equation-area {
+                min-height: 36vh;
+            }
+
+            .screen-arrow {
+                display: grid;
+                place-items: center;
+            }
+
+            .console-display {
+                grid-template-columns: 1fr;
+            }
+
+            .radar-stage {
+                min-height: 240px;
+            }
+
+            .expression-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .wacky-control {
+                grid-template-columns: 1fr 34px;
+            }
+
+            .wacky-control span:first-child {
+                grid-column: 1 / -1;
+            }
+
+            .scheme-control {
+                grid-template-columns: 1fr;
+            }
+
+            .probe-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <section class="workspace" aria-label="fraction differentiator">
+            <div class="hero">
+                <div>
+                    <p class="eyebrow">L'Hopital's Rule console</p>
+                    <h1>Limit resolver.</h1>
+                    <p class="subtitle">Explore indeterminate fractions by differentiating the numerator and denominator, then watch the transformed ratio render in glowing LaTeX.</p>
+                </div>
+                <button class="ghost theme-toggle" id="themeBtn" type="button" aria-pressed="false">Dark</button>
+            </div>
+
+            <div class="equation-area">
+                <div class="console-display">
+                    <div class="math-stage">
+                        <button class="screen-arrow left" id="scrollLeftBtn" type="button" aria-label="Scroll equation left">&lsaquo;</button>
+                        <div id="renderedFraction" aria-label="rendered fraction"></div>
+                        <button class="screen-arrow right" id="scrollRightBtn" type="button" aria-label="Scroll equation right">&rsaquo;</button>
+                    </div>
+                    <div class="radar-stage" aria-label="graph radar">
+                        <div class="radar-header" id="radarHeader">Polar radar</div>
+                        <div class="radar-sweep"></div>
+                        <label class="radar-toggle" for="unitCircleToggle">
+                            <input id="unitCircleToggle" type="checkbox">
+                            Unit circle
+                        </label>
+                        <canvas id="polarRadar" width="320" height="320"></canvas>
+                    </div>
+                </div>
+                <div class="limit-stage">
+                    <div id="limitProbeLabel">Limit as x approaches 0</div>
+                    <div id="limitProbe"></div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="actions">
+                    <button id="differentiateBtn" type="button">Differentiate</button>
+                    <button class="ghost" id="randomBtn" type="button">Random</button>
+                    <button class="plane-switch" id="planeToggleBtn" type="button" aria-pressed="false">
+                        <span class="polar-label">Polar</span>
+                        <span class="cartesian-label">Cartesian</span>
+                    </button>
+                    <div class="stats" aria-live="polite">
+                        <span class="count" id="clickCount">0</span>
+                        <span>differentiate clicks</span>
+                    </div>
+                </div>
+
+                <div class="control-stack">
+                    <label class="wacky-control" for="wackySlider">
+                        <span>Wackiness</span>
+                        <input id="wackySlider" type="range" min="0" max="7" step="1" value="4">
+                        <span class="count" id="wackyValue">4</span>
+                    </label>
+
+                    <label class="scheme-control" for="schemeSelect">
+                        <span>Color scheme</span>
+                        <select id="schemeSelect">
+                            <option value="purple">Purple green</option>
+                            <option value="amber">Royal amber</option>
+                            <option value="cyan">Blue cyan</option>
+                            <option value="rose">Rose beam</option>
+                        </select>
+                    </label>
+
+                    <div class="probe-grid">
+                        <label for="limitInput">
+                            Limit x approaches
+                            <input id="limitInput" value="0" autocomplete="off" spellcheck="false">
+                        </label>
+
+                        <label class="toggle-row" for="soundToggle">
+                            <input id="soundToggle" type="checkbox">
+                            Sound effects
+                        </label>
+                    </div>
+
+                    <div class="expression-grid">
+                    <label for="numInput">
+                        Numerator
+                        <input id="numInput" value="x^2 + 1" autocomplete="off" spellcheck="false">
+                    </label>
+
+                    <label for="denInput">
+                        Denominator
+                        <input id="denInput" value="sin(x)" autocomplete="off" spellcheck="false">
+                    </label>
+                    </div>
+                    <div class="actions">
+                        <button class="ghost" id="resetBtn" type="button">Reset</button>
+                    </div>
+                    <div id="status" role="status" aria-live="polite"></div>
+                </div>
+
+                <div class="result-row">
+                    <div class="result-label">Current expression</div>
+                    <div id="rawExpression"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const defaults = {
+            numerator: "x^2 + 1",
+            denominator: "sin(x)"
+        };
+
+        const numInput = document.getElementById("numInput");
+        const denInput = document.getElementById("denInput");
+        const renderedFraction = document.getElementById("renderedFraction");
+        const mathStage = document.querySelector(".math-stage");
+        const scrollLeftBtn = document.getElementById("scrollLeftBtn");
+        const scrollRightBtn = document.getElementById("scrollRightBtn");
+        const radarStage = document.querySelector(".radar-stage");
+        const polarRadar = document.getElementById("polarRadar");
+        const radarContext = polarRadar.getContext("2d");
+        const unitCircleToggle = document.getElementById("unitCircleToggle");
+        const radarHeader = document.getElementById("radarHeader");
+        const rawExpression = document.getElementById("rawExpression");
+        const limitProbe = document.getElementById("limitProbe");
+        const limitProbeLabel = document.getElementById("limitProbeLabel");
+        const limitInput = document.getElementById("limitInput");
+        const soundToggle = document.getElementById("soundToggle");
+        const statusEl = document.getElementById("status");
+        const differentiateBtn = document.getElementById("differentiateBtn");
+        const randomBtn = document.getElementById("randomBtn");
+        const planeToggleBtn = document.getElementById("planeToggleBtn");
+        const resetBtn = document.getElementById("resetBtn");
+        const themeBtn = document.getElementById("themeBtn");
+        const clickCountEl = document.getElementById("clickCount");
+        const wackySlider = document.getElementById("wackySlider");
+        const wackyValue = document.getElementById("wackyValue");
+        const schemeSelect = document.getElementById("schemeSelect");
+        let differentiateClicks = 0;
+        let graphMode = "polar";
+        let audioContext;
+        const schemeClasses = ["scheme-amber", "scheme-cyan", "scheme-rose"];
+
+        const expressionLevels = [
+            ["x", "x + 1", "x^2", "2*x", "x/2"],
+            ["x^2", "x^3", "(x + 1)^2", "3*x - 1", "sqrt(x^2 + 1)"],
+            ["sin(x)", "cos(x)", "log(x^2 + 2)", "exp(x/4)", "sqrt(x^2 + 3)"],
+            ["sin(x^2)", "cos(2*x)", "tan(x/4)", "(sin(x) + cos(x))^2", "exp(sin(x))"],
+            ["log(sin(x)^2 + 2)", "sqrt(cos(x)^2 + 1)", "sin(exp(x/5))", "cos(sin(x))", "(x + sin(x))/(x^2 + 2)"],
+            ["sin(log(x^2 + 3))", "exp(cos(x))/sqrt(x^2 + 2)", "tan(sin(x)/3)", "sqrt(exp(sin(x)) + 2)", "log(cos(x)^2 + sin(x)^2 + 2)"],
+            ["sin(exp(cos(x))/3)", "log(sqrt(x^2 + sin(x)^2 + 4))", "cos(sin(x^2 + exp(x/6)))", "exp(sin(cos(x)))/sqrt(x^2 + 3)", "(sin(x)^3 + cos(x)^3)/(sqrt(x^2 + 5))"],
+            ["sin(exp(cos(x^2 + sin(x)))/4)", "log((sin(exp(x/7)) + 2)^2 + cos(x)^2)", "sqrt(exp(sin(cos(x))) + log(x^2 + 4))", "tan(sin(log(x^2 + 5))/5)", "(exp(sin(x)) + sqrt(cos(x)^2 + 2))/(log(x^2 + 6))"]
+        ];
+
+        function pick(items) {
+            return items[Math.floor(Math.random() * items.length)];
+        }
+
+        function randomCoefficient() {
+            const values = ["", "", "", "2*", "3*", "5*", "-1*", "-2*", "1/2*"];
+            return pick(values);
+        }
+
+        function poolForWackiness(level) {
+            return expressionLevels.slice(0, level + 1).flat();
+        }
+
+        function randomTerm(level) {
+            const pool = poolForWackiness(level);
+            const base = pick(pool);
+            const wrappers = [
+                base,
+                `${randomCoefficient()}${base}`,
+                `(${base})*(${pick(poolForWackiness(Math.max(0, level - 2)))})`
+            ];
+
+            if (level >= 2) {
+                wrappers.push(`(${base})/(${pick(["x^2 + 1", "sqrt(x^2 + 2)", "sin(x)^2 + 2", "log(x^2 + 3)"])})`);
+            }
+
+            if (level >= 5) {
+                wrappers.push(`sin(${base})`, `exp((${base})/5)`, `log((${base})^2 + 3)`);
+            }
+
+            return pick(wrappers);
+        }
+
+        function randomExpression() {
+            const level = Number(wackySlider.value);
+            const maxTerms = Math.min(4, Math.max(1, Math.ceil((level + 1) / 2)));
+            const termCount = Math.floor(Math.random() * maxTerms) + 1;
+            const terms = Array.from({ length: termCount }, () => randomTerm(level));
+            return terms.reduce((expression, term, index) => {
+                if (index === 0) {
+                    return term;
+                }
+
+                return `${expression} ${Math.random() > 0.35 ? "+" : "-"} ${term}`;
+            }, "");
+        }
+
+        function toLatex(expression) {
+            return math.parse(expression).toTex({
+                parenthesis: "keep",
+                implicit: "show"
+            });
+        }
+
+        function playTone(type = "tap") {
+            if (!soundToggle.checked) {
+                return;
+            }
+
+            audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+
+            const now = audioContext.currentTime;
+            if (audioContext.state === "suspended") {
+                audioContext.resume();
+            }
+
+            const oscillator = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            const settings = {
+                tap: [440, 0.045, "square", 0.035],
+                success: [720, 0.08, "triangle", 0.04],
+                random: [260, 0.1, "sawtooth", 0.028],
+                error: [120, 0.12, "square", 0.035]
+            }[type];
+
+            oscillator.frequency.setValueAtTime(settings[0], now);
+            oscillator.type = settings[2];
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(settings[3], now + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + settings[1]);
+            oscillator.connect(gain);
+            gain.connect(audioContext.destination);
+            oscillator.start(now);
+            oscillator.stop(now + settings[1] + 0.02);
+        }
+
+        function parseLimitValue() {
+            const raw = limitInput.value.trim().toLowerCase();
+
+            if (["inf", "+inf", "infinity", "+infinity"].includes(raw)) {
+                return { label: "infinity", value: 1e6 };
+            }
+
+            if (["-inf", "-infinity"].includes(raw)) {
+                return { label: "-infinity", value: -1e6 };
+            }
+
+            const value = math.evaluate(raw || "0");
+            return { label: raw || "0", value };
+        }
+
+        function formatNumber(value) {
+            if (!Number.isFinite(value)) {
+                return String(value);
+            }
+
+            if (Math.abs(value) < 0.000001) {
+                return "0";
+            }
+
+            return Number(value.toPrecision(7)).toString();
+        }
+
+        function limitLabelTex(label) {
+            if (label === "infinity") {
+                return "\\infty";
+            }
+
+            if (label === "-infinity") {
+                return "-\\infty";
+            }
+
+            try {
+                return toLatex(label);
+            } catch (error) {
+                return label;
+            }
+        }
+
+        function updateLimitProbe(numerator, denominator) {
+            try {
+                const limit = parseLimitValue();
+                const scope = { x: limit.value };
+                const numValue = math.evaluate(numerator, scope);
+                const denValue = math.evaluate(denominator, scope);
+                const ratio = numValue / denValue;
+
+                katex.render(String.raw`\lim_{x \to ${limitLabelTex(limit.label)}} \frac{${toLatex(numerator)}}{${toLatex(denominator)}}`, limitProbeLabel, {
+                    displayMode: true,
+                    throwOnError: false
+                });
+                katex.render(String.raw`\frac{${formatNumber(numValue)}}{${formatNumber(denValue)}} = ${formatNumber(ratio)}`, limitProbe, {
+                    displayMode: true,
+                    throwOnError: false
+                });
+            } catch (error) {
+                katex.render(String.raw`\lim_{x \to ${limitInput.value.trim() || "0"}}`, limitProbeLabel, {
+                    displayMode: true,
+                    throwOnError: false
+                });
+                limitProbe.textContent = "Limit probe unavailable";
+            }
+        }
+
+        function renderFraction() {
+            const numerator = numInput.value.trim() || "0";
+            const denominator = denInput.value.trim() || "1";
+
+            try {
+                resizeEquation(numerator, denominator);
+                const latex = String.raw`\frac{${toLatex(numerator)}}{${toLatex(denominator)}}`;
+                katex.render(latex, renderedFraction, {
+                    displayMode: true,
+                    throwOnError: false
+                });
+                pulseScreen();
+                drawGraphScreen(numerator, denominator);
+                fitEquationToStage();
+                rawExpression.textContent = `(${numerator}) / (${denominator})`;
+                updateLimitProbe(numerator, denominator);
+                statusEl.textContent = "";
+                statusEl.classList.remove("error");
+            } catch (error) {
+                statusEl.textContent = error.message;
+                statusEl.classList.add("error");
+                playTone("error");
+            }
+        }
+
+        function resizeEquation(numerator, denominator) {
+            const expressionLength = numerator.length + denominator.length;
+            const screenFactor = Math.min(window.innerWidth, window.innerHeight);
+            const baseSize = Math.max(28, Math.min(78, screenFactor * 0.072));
+            const lengthPenalty = Math.max(0.42, Math.min(1, 42 / Math.max(42, expressionLength)));
+            const size = Math.max(22, baseSize * lengthPenalty);
+
+            renderedFraction.style.setProperty("--equation-size", `${size}px`);
+        }
+
+        function fitEquationToStage() {
+            requestAnimationFrame(() => {
+                const stage = renderedFraction.parentElement;
+                const currentSize = parseFloat(getComputedStyle(renderedFraction).fontSize);
+                const widthRatio = stage.clientWidth / Math.max(renderedFraction.scrollWidth, 1);
+                const heightRatio = stage.clientHeight / Math.max(renderedFraction.scrollHeight, 1);
+                const fitRatio = Math.min(widthRatio, heightRatio, 1);
+
+                if (fitRatio < 1) {
+                    const nextSize = Math.max(18, Math.floor(currentSize * fitRatio * 0.96));
+                    renderedFraction.style.setProperty("--equation-size", `${nextSize}px`);
+                }
+            });
+        }
+
+        function restartAnimation(element, className) {
+            element.classList.remove(className);
+            void element.offsetWidth;
+            element.classList.add(className);
+        }
+
+        function pulseScreen() {
+            restartAnimation(mathStage, "flicker");
+            restartAnimation(radarStage, "flicker");
+        }
+
+        function screenColor(alpha = 1) {
+            const rgb = getComputedStyle(document.body).getPropertyValue("--screen-rgb").trim();
+            return `rgba(${rgb}, ${alpha})`;
+        }
+
+        function drawRadarGrid(center, radius) {
+            radarContext.clearRect(0, 0, polarRadar.width, polarRadar.height);
+            radarContext.fillStyle = "#030603";
+            radarContext.fillRect(0, 0, polarRadar.width, polarRadar.height);
+            radarContext.save();
+            radarContext.translate(center, center);
+
+            radarContext.strokeStyle = screenColor(0.22);
+            radarContext.lineWidth = 1;
+
+            for (let ring = 1; ring <= 4; ring += 1) {
+                radarContext.beginPath();
+                radarContext.arc(0, 0, radius * ring / 4, 0, Math.PI * 2);
+                radarContext.stroke();
+            }
+
+            for (let spoke = 0; spoke < 12; spoke += 1) {
+                const angle = spoke * Math.PI / 6;
+                radarContext.beginPath();
+                radarContext.moveTo(0, 0);
+                radarContext.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+                radarContext.stroke();
+            }
+
+            radarContext.restore();
+        }
+
+        function prepareCanvas() {
+            const size = Math.floor(polarRadar.getBoundingClientRect().width || 320);
+            const pixelRatio = window.devicePixelRatio || 1;
+            polarRadar.width = size * pixelRatio;
+            polarRadar.height = size * pixelRatio;
+            radarContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+            return size;
+        }
+
+        function drawUnitCircleLabels(center, radius) {
+            const labels = [
+                ["0", 0],
+                ["pi/6", Math.PI / 6],
+                ["pi/4", Math.PI / 4],
+                ["pi/3", Math.PI / 3],
+                ["pi/2", Math.PI / 2],
+                ["2pi/3", 2 * Math.PI / 3],
+                ["3pi/4", 3 * Math.PI / 4],
+                ["5pi/6", 5 * Math.PI / 6],
+                ["pi", Math.PI],
+                ["7pi/6", 7 * Math.PI / 6],
+                ["5pi/4", 5 * Math.PI / 4],
+                ["4pi/3", 4 * Math.PI / 3],
+                ["3pi/2", 3 * Math.PI / 2],
+                ["5pi/3", 5 * Math.PI / 3],
+                ["7pi/4", 7 * Math.PI / 4],
+                ["11pi/6", 11 * Math.PI / 6]
+            ];
+
+            radarContext.save();
+            radarContext.translate(center, center);
+            radarContext.fillStyle = screenColor(0.82);
+            radarContext.font = "700 10px Inter, sans-serif";
+            radarContext.textAlign = "center";
+            radarContext.textBaseline = "middle";
+            radarContext.shadowColor = screenColor(0.62);
+            radarContext.shadowBlur = 6;
+
+            labels.forEach(([label, angle]) => {
+                const labelRadius = radius * 0.92;
+                const x = Math.cos(angle) * labelRadius;
+                const y = Math.sin(angle) * labelRadius;
+                radarContext.fillText(label, x, y);
+            });
+
+            radarContext.restore();
+        }
+
+        function drawGraphScreen(numerator, denominator) {
+            if (graphMode === "polar") {
+                drawPolarRadar(numerator, denominator);
+            } else {
+                drawCartesianGraph(numerator, denominator);
+            }
+        }
+
+        function drawPolarRadar(numerator, denominator) {
+            const size = prepareCanvas();
+
+            const center = size / 2;
+            const radius = size * 0.42;
+            drawRadarGrid(center, radius);
+
+            if (unitCircleToggle.checked) {
+                drawUnitCircleLabels(center, radius);
+            }
+
+            try {
+                const compiledNumerator = math.compile(numerator);
+                const compiledDenominator = math.compile(denominator);
+                const samples = [];
+
+                for (let i = 0; i <= 420; i += 1) {
+                    const theta = i / 420 * Math.PI * 2;
+                    const scope = { x: theta };
+                    const denValue = compiledDenominator.evaluate(scope);
+                    const numValue = compiledNumerator.evaluate(scope);
+                    const rawR = Math.abs(denValue) < 0.0001 ? NaN : numValue / denValue;
+
+                    if (Number.isFinite(rawR)) {
+                        samples.push({ theta, r: Math.max(-12, Math.min(12, rawR)) });
+                    }
+                }
+
+                const maxMagnitude = Math.max(1, ...samples.map((sample) => Math.abs(sample.r)));
+
+                if (samples.length < 2) {
+                    throw new Error("No stable polar samples");
+                }
+
+                radarContext.save();
+                radarContext.translate(center, center);
+                radarContext.strokeStyle = screenColor(0.96);
+                radarContext.lineWidth = 2;
+                radarContext.shadowColor = screenColor(0.78);
+                radarContext.shadowBlur = 12;
+                radarContext.beginPath();
+
+                samples.forEach((sample, index) => {
+                    const scaledR = sample.r / maxMagnitude * radius;
+                    const x = Math.cos(sample.theta) * scaledR;
+                    const y = Math.sin(sample.theta) * scaledR;
+
+                    if (index === 0) {
+                        radarContext.moveTo(x, y);
+                    } else {
+                        radarContext.lineTo(x, y);
+                    }
+                });
+
+                radarContext.stroke();
+                radarContext.restore();
+            } catch (error) {
+                radarContext.fillStyle = screenColor(0.85);
+                radarContext.font = "700 13px Inter, sans-serif";
+                radarContext.textAlign = "center";
+                radarContext.fillText("RADAR RANGE ERROR", center, center);
+            }
+        }
+
+        function drawCartesianGrid(size, center, scale) {
+            radarContext.clearRect(0, 0, polarRadar.width, polarRadar.height);
+            radarContext.fillStyle = "#030603";
+            radarContext.fillRect(0, 0, size, size);
+
+            radarContext.strokeStyle = screenColor(0.18);
+            radarContext.lineWidth = 1;
+
+            for (let line = -3; line <= 3; line += 1) {
+                const offset = line * scale;
+                radarContext.beginPath();
+                radarContext.moveTo(center + offset, 0);
+                radarContext.lineTo(center + offset, size);
+                radarContext.stroke();
+
+                radarContext.beginPath();
+                radarContext.moveTo(0, center + offset);
+                radarContext.lineTo(size, center + offset);
+                radarContext.stroke();
+            }
+
+            radarContext.strokeStyle = screenColor(0.62);
+            radarContext.lineWidth = 1.5;
+            radarContext.beginPath();
+            radarContext.moveTo(0, center);
+            radarContext.lineTo(size, center);
+            radarContext.moveTo(center, 0);
+            radarContext.lineTo(center, size);
+            radarContext.stroke();
+        }
+
+        function drawCartesianGraph(numerator, denominator) {
+            const size = prepareCanvas();
+            const center = size / 2;
+            const scale = size / 8;
+            drawCartesianGrid(size, center, scale);
+
+            try {
+                const compiledNumerator = math.compile(numerator);
+                const compiledDenominator = math.compile(denominator);
+                const points = [];
+
+                for (let i = 0; i <= 500; i += 1) {
+                    const x = -4 + i / 500 * 8;
+                    const scope = { x };
+                    const denValue = compiledDenominator.evaluate(scope);
+                    const numValue = compiledNumerator.evaluate(scope);
+                    const y = Math.abs(denValue) < 0.0001 ? NaN : numValue / denValue;
+
+                    if (Number.isFinite(y) && Math.abs(y) <= 20) {
+                        points.push({
+                            x: center + x * scale,
+                            y: center - Math.max(-4, Math.min(4, y)) * scale,
+                            connected: true
+                        });
+                    } else {
+                        points.push({ connected: false });
+                    }
+                }
+
+                radarContext.strokeStyle = screenColor(0.96);
+                radarContext.lineWidth = 2;
+                radarContext.shadowColor = screenColor(0.78);
+                radarContext.shadowBlur = 12;
+                radarContext.beginPath();
+
+                let drawing = false;
+                points.forEach((point) => {
+                    if (!point.connected) {
+                        drawing = false;
+                        return;
+                    }
+
+                    if (!drawing) {
+                        radarContext.moveTo(point.x, point.y);
+                        drawing = true;
+                    } else {
+                        radarContext.lineTo(point.x, point.y);
+                    }
+                });
+
+                radarContext.stroke();
+            } catch (error) {
+                radarContext.fillStyle = screenColor(0.85);
+                radarContext.font = "700 13px Inter, sans-serif";
+                radarContext.textAlign = "center";
+                radarContext.fillText("GRAPH RANGE ERROR", center, center);
+            }
+        }
+
+        function differentiateFraction() {
+            try {
+                numInput.value = math.derivative(numInput.value || "0", "x").toString();
+                denInput.value = math.derivative(denInput.value || "1", "x").toString();
+                differentiateClicks += 1;
+                clickCountEl.textContent = differentiateClicks;
+                restartAnimation(clickCountEl, "bump");
+                playTone("success");
+                renderFraction();
+            } catch (error) {
+                statusEl.textContent = error.message;
+                statusEl.classList.add("error");
+                playTone("error");
+            }
+        }
+
+        function generateRandomFraction() {
+            numInput.value = randomExpression();
+            denInput.value = randomExpression();
+            playTone("random");
+            renderFraction();
+        }
+
+        function updateWackiness() {
+            wackyValue.textContent = wackySlider.value;
+        }
+
+        function updateColorScheme() {
+            document.body.classList.remove(...schemeClasses);
+
+            if (schemeSelect.value !== "purple") {
+                document.body.classList.add(`scheme-${schemeSelect.value}`);
+            }
+
+            renderFraction();
+        }
+
+        function resetFraction() {
+            numInput.value = defaults.numerator;
+            denInput.value = defaults.denominator;
+            renderFraction();
+        }
+
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle("dark");
+            themeBtn.textContent = isDark ? "Light" : "Dark";
+            themeBtn.setAttribute("aria-pressed", String(isDark));
+        }
+
+        function toggleGraphMode() {
+            graphMode = graphMode === "polar" ? "cartesian" : "polar";
+            planeToggleBtn.classList.toggle("is-cartesian", graphMode === "cartesian");
+            planeToggleBtn.setAttribute("aria-pressed", String(graphMode === "cartesian"));
+            radarHeader.textContent = graphMode === "polar" ? "Polar radar" : "Cartesian scope";
+            unitCircleToggle.disabled = graphMode !== "polar";
+            renderFraction();
+        }
+
+        function scrollEquation(direction, event) {
+            event.stopPropagation();
+            const distance = Math.max(120, renderedFraction.clientWidth * 0.55);
+            renderedFraction.scrollBy({
+                left: direction * distance,
+                behavior: "smooth"
+            });
+        }
+
+        async function copyEquation() {
+            const numerator = numInput.value.trim() || "0";
+            const denominator = denInput.value.trim() || "1";
+            const expression = `(${numerator}) / (${denominator})`;
+
+            try {
+                await navigator.clipboard.writeText(expression);
+                statusEl.textContent = "Copied equation to clipboard";
+                statusEl.classList.remove("error");
+                playTone("success");
+                pulseScreen();
+            } catch (error) {
+                statusEl.textContent = "Clipboard copy is unavailable in this browser context";
+                statusEl.classList.add("error");
+                playTone("error");
+            }
+        }
+
+        differentiateBtn.addEventListener("click", differentiateFraction);
+        randomBtn.addEventListener("click", generateRandomFraction);
+        planeToggleBtn.addEventListener("click", toggleGraphMode);
+        resetBtn.addEventListener("click", resetFraction);
+        themeBtn.addEventListener("click", toggleTheme);
+        mathStage.addEventListener("click", copyEquation);
+        scrollLeftBtn.addEventListener("click", (event) => scrollEquation(-1, event));
+        scrollRightBtn.addEventListener("click", (event) => scrollEquation(1, event));
+        wackySlider.addEventListener("input", updateWackiness);
+        schemeSelect.addEventListener("change", updateColorScheme);
+        unitCircleToggle.addEventListener("change", renderFraction);
+        numInput.addEventListener("input", renderFraction);
+        denInput.addEventListener("input", renderFraction);
+        limitInput.addEventListener("input", renderFraction);
+        document.querySelectorAll("button, select, input[type='checkbox'], input[type='range']").forEach((control) => {
+            control.addEventListener("pointerdown", () => playTone("tap"));
+        });
+        window.addEventListener("resize", renderFraction);
+
+        window.addEventListener("DOMContentLoaded", () => {
+            updateWackiness();
+            renderFraction();
+        });
+    </script>
+</body>
+</html>
